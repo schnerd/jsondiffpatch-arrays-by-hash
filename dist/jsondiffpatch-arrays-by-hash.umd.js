@@ -1,3 +1,11 @@
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.jsondiffpatchArraysByHash = factory());
+}(this, (function () { 'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var DiffContext = require('jsondiffpatch/src/contexts/diff').DiffContext;
 var PatchContext = require('jsondiffpatch/src/contexts/patch').PatchContext;
 var ReverseContext = require('jsondiffpatch/src/contexts/reverse').ReverseContext;
@@ -13,26 +21,25 @@ var MODIFY_PREFIX = '!';
 var INDEX_PREFIX = '@';
 var HASH_PREFIX = '#';
 
-var isArray = (typeof Array.isArray === 'function') ?
-  // use native function
-  Array.isArray :
-  // use instanceof operator
-  function(a) {
-    return a instanceof Array;
-  };
+var isArray = typeof Array.isArray === 'function' ?
+// use native function
+Array.isArray :
+// use instanceof operator
+function (a) {
+  return a instanceof Array;
+};
 
-var arrayIndexOf = typeof Array.prototype.indexOf === 'function' ?
-  function(array, item) {
-    return array.indexOf(item);
-  } : function(array, item) {
-    var length = array.length;
-    for (var i = 0; i < length; i++) {
-      if (array[i] === item) {
-        return i;
-      }
+var arrayIndexOf = typeof Array.prototype.indexOf === 'function' ? function (array, item) {
+  return array.indexOf(item);
+} : function (array, item) {
+  var length = array.length;
+  for (var i = 0; i < length; i++) {
+    if (array[i] === item) {
+      return i;
     }
-    return -1;
-  };
+  }
+  return -1;
+};
 
 function arraysHaveMatchByRef(array1, array2, len1, len2) {
   for (var index1 = 0; index1 < len1; index1++) {
@@ -52,7 +59,7 @@ function matchItems(array1, array2, index1, index2, context) {
   if (value1 === value2) {
     return true;
   }
-  if (typeof value1 !== 'object' || typeof value2 !== 'object') {
+  if ((typeof value1 === 'undefined' ? 'undefined' : _typeof(value1)) !== 'object' || (typeof value2 === 'undefined' ? 'undefined' : _typeof(value2)) !== 'object') {
     return false;
   }
   var objectHash = context.objectHash;
@@ -122,14 +129,12 @@ var diffFilter = function arraysDiffFilter(context) {
   var child;
   var hashKey;
 
-  if (len1 > 0 && len2 > 0 && !matchContext.objectHash &&
-    typeof matchContext.matchByPosition !== 'boolean') {
+  if (len1 > 0 && len2 > 0 && !matchContext.objectHash && typeof matchContext.matchByPosition !== 'boolean') {
     matchContext.matchByPosition = !arraysHaveMatchByRef(array1, array2, len1, len2);
   }
 
   // separate common head
-  while (commonHead < len1 && commonHead < len2 &&
-    matchItems(array1, array2, commonHead, commonHead, matchContext)) {
+  while (commonHead < len1 && commonHead < len2 && matchItems(array1, array2, commonHead, commonHead, matchContext)) {
     index = commonHead;
     child = new DiffContext(context.left[index], context.right[index]);
     hashKey = hashOrIndex(array1[index], index, matchContext);
@@ -137,8 +142,7 @@ var diffFilter = function arraysDiffFilter(context) {
     commonHead++;
   }
   // separate common tail
-  while (commonTail + commonHead < len1 && commonTail + commonHead < len2 &&
-    matchItems(array1, array2, len1 - 1 - commonTail, len2 - 1 - commonTail, matchContext)) {
+  while (commonTail + commonHead < len1 && commonTail + commonHead < len2 && matchItems(array1, array2, len1 - 1 - commonTail, len2 - 1 - commonTail, matchContext)) {
     index1 = len1 - 1 - commonTail;
     index2 = len2 - 1 - commonTail;
     child = new DiffContext(context.left[index1], context.right[index2]);
@@ -182,11 +186,7 @@ var diffFilter = function arraysDiffFilter(context) {
   // diff is not trivial, find the LCS (Longest Common Subsequence)
   var trimmed1 = array1.slice(commonHead, len1 - commonTail);
   var trimmed2 = array2.slice(commonHead, len2 - commonTail);
-  var seq = lcs.get(
-    trimmed1, trimmed2,
-    matchItems,
-    matchContext
-  );
+  var seq = lcs.get(trimmed1, trimmed2, matchItems, matchContext);
   var removedItems = [];
   result = result || {
     _t: 'a'
@@ -218,8 +218,7 @@ var diffFilter = function arraysDiffFilter(context) {
       if (detectMove && removedItemsLength > 0) {
         for (var removeItemIndex1 = 0; removeItemIndex1 < removedItemsLength; removeItemIndex1++) {
           index1 = removedItems[removeItemIndex1];
-          if (matchItems(trimmed1, trimmed2, index1 - commonHead,
-            index - commonHead, matchContext)) {
+          if (matchItems(trimmed1, trimmed2, index1 - commonHead, index - commonHead, matchContext)) {
             hashKey = hashOrIndex(array1[index1], index1, matchContext);
             // store position move as: [originalValue, originalPosition, newPosition, ARRAY_MOVE]
             result[REMOVE_PREFIX + hashKey].splice(1, 3, index1, index, ARRAY_MOVE);
@@ -252,16 +251,15 @@ var diffFilter = function arraysDiffFilter(context) {
   }
 
   context.setResult(result).exit();
-
 };
 diffFilter.filterName = 'arrays';
 
 var compare = {
-  numerically: function(a, b) {
+  numerically: function numerically(a, b) {
     return a - b;
   },
-  numericallyBy: function(name) {
-    return function(a, b) {
+  numericallyBy: function numericallyBy(name) {
+    return function (a, b) {
       return a[name] - b[name];
     };
   }
@@ -280,7 +278,7 @@ var patchFilter = function nestedPatchFilter(context) {
   var array = context.left;
 
   var matchContext = {
-    objectHash: context.options && context.options.objectHash,
+    objectHash: context.options && context.options.objectHash
   };
 
   // first, separate removals, insertions and modifications
@@ -294,8 +292,7 @@ var patchFilter = function nestedPatchFilter(context) {
         if (delta[index][3] === ARRAY_REMOVE || delta[index][3] === ARRAY_MOVE) {
           toRemove[index.slice(1)] = true;
         } else {
-          throw new Error('only removal or move can be applied at original array indices' +
-            ', invalid diff type: ' + delta[index][3]);
+          throw new Error('only removal or move can be applied at original array indices' + ', invalid diff type: ' + delta[index][3]);
         }
       } else {
         if (index[0] === INSERT_PREFIX) {
@@ -304,7 +301,7 @@ var patchFilter = function nestedPatchFilter(context) {
             index: parseInt(index.slice(2), 10),
             value: delta[index][0]
           });
-        } else if (index[0] === MODIFY_PREFIX){
+        } else if (index[0] === MODIFY_PREFIX) {
           // modified item at new array
           toModify[index.slice(1)] = delta[index];
         }
@@ -398,7 +395,7 @@ var reverseFilter = function arraysReverseFilter(context) {
 };
 reverseFilter.filterName = 'arrays';
 
-var reverseArrayDeltaIndex = function(delta, index, itemDelta) {
+var reverseArrayDeltaIndex = function reverseArrayDeltaIndex(delta, index, itemDelta) {
   // We neednt worry about hash indexes here
   if (index[1] === HASH_PREFIX) {
     return index;
@@ -421,13 +418,13 @@ var reverseArrayDeltaIndex = function(delta, index, itemDelta) {
         } else if (moveFromIndex >= reverseIndex && moveToIndex < reverseIndex) {
           reverseIndex--;
         }
-      // Handle removals
+        // Handle removals
       } else if (deltaItem[3] === ARRAY_REMOVE) {
         var deleteIndex = deltaItem[1];
         if (deleteIndex <= reverseIndex) {
           reverseIndex++;
         }
-      // Handle inserts
+        // Handle inserts
       } else if (deltaItem.length === 1 && deltaIndex <= reverseIndex) {
         reverseIndex--;
       }
@@ -475,7 +472,7 @@ var collectChildrenReverseFilter = function collectChildrenReverseFilter(context
     return;
   }
   var matchContext = {
-    objectHash: context.options && context.options.objectHash,
+    objectHash: context.options && context.options.objectHash
   };
 
   // Handle array element children (see function description)
@@ -500,12 +497,7 @@ var collectChildrenReverseFilter = function collectChildrenReverseFilter(context
           // Use index for new name
           context.newName = REMOVE_PREFIX + INDEX_PREFIX + context.delta[2];
         }
-        context.setResult([
-          context.delta[0],
-          context.delta[2],
-          context.delta[1],
-          ARRAY_MOVE
-        ]).exit();
+        context.setResult([context.delta[0], context.delta[2], context.delta[1], ARRAY_MOVE]).exit();
         return;
       }
 
@@ -549,10 +541,14 @@ var collectChildrenReverseFilter = function collectChildrenReverseFilter(context
 };
 collectChildrenReverseFilter.filterName = 'arraysCollectChildren';
 
-export default {
-	diffFilter,
-	patchFilter,
-	collectChildrenPatchFilter,
-	reverseFilter,
-	collectChildrenReverseFilter,
+var main = {
+  diffFilter: diffFilter,
+  patchFilter: patchFilter,
+  collectChildrenPatchFilter: collectChildrenPatchFilter,
+  reverseFilter: reverseFilter,
+  collectChildrenReverseFilter: collectChildrenReverseFilter
 };
+
+return main;
+
+})));
