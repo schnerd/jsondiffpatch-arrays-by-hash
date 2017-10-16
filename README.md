@@ -35,21 +35,21 @@ var flagged = [{id: 1}, {id: 2, foo: true}];
 var reordered = [{id: 2}, {id: 1}];
 var reorderPatch = withHash.diff(before, reordered);
 
-// 2. Flag patch add a property to object with ID 2
+// 2. Flag patch adds a property to object with ID 2
 var flagged = [{id: 1}, {id: 2, foo: true}];
 var flaggedPatch = withHash.diff(before, flagged);
 
-// Now, after time passes, say we apply the redorder patch
+// After some time passes, we apply the redorder patch
 var after = withHash.patch(before, reorderPatch);
 
 // And then apply the flagged patch, essentially doing a merge
-var after = withHash.patch(before, flaggedPatch);
+after = withHash.patch(after, flaggedPatch);
 
 // Oh no! The flag was instead applied to object with id 1, instead of 2
-[{id: 2}, {id: 1, foo: true}];
+// [{id: 2}, {id: 1, foo: true}]
 ```
 
-This plugin attempts to fix this, by storing the result of `objectHash` with each array change, and then reapplying those changes to the element with the specified object hash instead of the specified array index.
+This plugin attempts to fix this shortcoming, by storing the result of `objectHash` with each array change, and then reapplying those changes to the element with the specified object hash instead of the specified array index.
 
 ### Array Delta JSON Representation
 
