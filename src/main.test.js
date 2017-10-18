@@ -651,6 +651,16 @@ const tests = [{
 function runTest(testCase) {
 	let instance = jsondiffpatchCreator.create(testCase.options);
 
+  // Set up plugin
+  instance.processor.pipes.diff
+    .replace('arrays', jsondiffpatchArraysByHash.diffFilter);
+  instance.processor.pipes.patch
+    .replace('arrays', jsondiffpatchArraysByHash.patchFilter)
+    .replace('arraysCollectChildren', jsondiffpatchArraysByHash.collectChildrenPatchFilter);
+  instance.processor.pipes.reverse
+    .replace('arrays', jsondiffpatchArraysByHash.reverseFilter)
+    .replace('arraysCollectChildren', jsondiffpatchArraysByHash.collectChildrenReverseFilter);
+
   test(`${testCase.name} - Create diff`, () => {
     expect(instance.diff(testCase.left, testCase.right))
       .toEqual(testCase.delta);

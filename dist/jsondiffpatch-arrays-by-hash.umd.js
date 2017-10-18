@@ -65,7 +65,7 @@ function matchItems(array1, array2, index1, index2, context) {
   var objectHash = context.objectHash;
   if (!objectHash) {
     // no way to match objects was provided, try match by position
-    return context.matchByPosition && index1 === index2;
+    return Boolean(context.matchByPosition) && index1 === index2;
   }
   var hash1;
   var hash2;
@@ -78,9 +78,7 @@ function matchItems(array1, array2, index1, index2, context) {
   } else {
     hash1 = objectHash(value1);
   }
-  if (typeof hash1 === 'undefined') {
-    return false;
-  }
+
   if (typeof index2 === 'number') {
     context.hashCache2 = context.hashCache2 || [];
     hash2 = context.hashCache2[index2];
@@ -90,16 +88,23 @@ function matchItems(array1, array2, index1, index2, context) {
   } else {
     hash2 = objectHash(value2);
   }
-  if (typeof hash2 === 'undefined') {
-    return false;
+
+  // If at least one of the objects has a hash, compare them
+  if (hash1 !== undefined || hash2 !== undefined) {
+    return hash1 === hash2;
   }
-  return hash1 === hash2;
+  // Otherwise, fall back to matching by position if enabled
+  if (context.matchByPosition) {
+    return index1 === index2;
+  }
+  // Finally, assume the items dont match
+  return false;
 }
 
 function hashOrIndex(object, index, matchContext) {
   var hash;
   if (matchContext.objectHash) {
-    hash = matchContext.objectHash(object);
+    hash = matchContext.objectHash(object, index);
   }
   if (hash !== undefined) {
     return HASH_PREFIX + hash;
