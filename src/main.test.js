@@ -1,5 +1,5 @@
 const jsondiffpatchArraysByHash = require('../dist/jsondiffpatch-arrays-by-hash.cjs.js');
-const jsondiffpatchCreator = require('jsondiffpatch');
+const jsondiffpatch = require('jsondiffpatch');
 
 const tests = [{
     name: 'simple values',
@@ -646,10 +646,49 @@ const tests = [{
       '!#9': { inner: {value: [3, 2]}},
     }
   },
+  {
+    name: 'matchByPosition kicks in when objectHash fails',
+    options: {
+      objectHash: function(obj) {
+        if (obj && obj.id) {
+          return obj.id;
+        }
+      },
+      matchByPosition: true,
+    },
+    left: [
+      { id: 'red', value: 1 },
+      { id: 'blue', value: 2},
+      { value: 3 }
+    ],
+    right: [
+      { id: 'red', value: 1 },
+      { id: 'blue', value: 3},
+      { value: 4 }
+    ],
+    delta: {
+      '!#blue': {
+        value: [2, 3]
+      },
+      '!@2': {
+        value: [3, 4]
+      },
+      _t: 'a'
+    },
+    reverse: {
+      '!#blue': {
+        value: [3, 2]
+      },
+      '!@2': {
+        value: [4, 3]
+      },
+      _t: 'a'
+    }
+  },
 ];
 
 function runTest(testCase) {
-	let instance = jsondiffpatchCreator.create(testCase.options);
+	let instance = jsondiffpatch.create(testCase.options);
 
   // Set up plugin
   instance.processor.pipes.diff
@@ -661,10 +700,43 @@ function runTest(testCase) {
     .replace('arrays', jsondiffpatchArraysByHash.reverseFilter)
     .replace('arraysCollectChildren', jsondiffpatchArraysByHash.collectChildrenReverseFilter);
 
-  test(`${testCase.name} - Create diff`, () => {
+  // Test creating diff
+  test(`${testCase.name} - Diff`, () => {
     expect(instance.diff(testCase.left, testCase.right))
       .toEqual(testCase.delta);
   });
+
+  // Test creating diff backwards
+  test(`${testCase.name} - Backwards diff`, () => {
+    expect(instance.diff(testCase.right, testCase.left))
+      .toEqual(testCase.reverse);
+  });
+
+  // Test patching (unless disabled for test case)
+  if (!testCase.noPatch) {
+    test(`${testCase.name} - Patch`, () => {
+      var right = instance.patch(jsondiffpatch.clone(testCase.left), testCase.delta);
+      expect(right).toEqual(testCase.right);
+    });
+
+    test(`${testCase.name} - Reverse Delta`, () => {
+      var reverse = instance.reverse(testCase.delta);
+      if (testCase.exactReverse !== false) {
+        expect(reverse).toEqual(testCase.reverse);
+      } else {
+        // reversed delta and the swapped-diff delta are not always equal,
+        // to verify they're equivalent, patch and compare the results
+        expect(instance.patch(jsondiffpatch.clone(testCase.right), reverse)).toEqual(testCase.left);
+        reverse = instance.diff(testCase.right, testCase.left);
+        expect(instance.patch(jsondiffpatch.clone(testCase.right), reverse)).toEqual(testCase.left);
+      }
+    });
+
+    test(`${testCase.name} - Unpatch`, () => {
+      var left = instance.unpatch(jsondiffpatch.clone(testCase.right), testCase.delta);
+      expect(left).toEqual(testCase.left);
+    });
+  }
 }
 
 function runAllTests() {
