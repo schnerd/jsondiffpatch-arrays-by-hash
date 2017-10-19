@@ -77,4 +77,36 @@ In practice deltas look liks this:
 
 ### How to use this plugin
 
-Coming soon
+First install the plugin, and ensure you have jsondiffpatch >= 0.25
+
+```
+npm install jsondiffpatch-arrays-by-hash
+```
+
+Next set up your jsondiffpatch instance and configure it to use this plugin:
+
+```js
+import jsonDiffPatch from 'jsondiffpatch';
+import jsondiffpatchArraysByHash from 'jsondiffpatch-arrays-by-hash';
+
+const instance = jsonDiffPatch.create({
+  // Define an object hash function
+  objectHash: function getObjectHash(obj, index) {
+    return obj.id;
+  },
+  // Setting matchByPosition as a fallback for when objectHash returns undefined can create smaller diffs
+  matchByPosition: true,
+});
+
+// Replace the default array filter with our new array filter for the pipes we care about
+instance.processor.pipes.diff
+  .replace('arrays', jsondiffpatchArraysByHash.diffFilter);
+instance.processor.pipes.patch
+  .replace('arrays', jsondiffpatchArraysByHash.patchFilter)
+  .replace('arraysCollectChildren', jsondiffpatchArraysByHash.collectChildrenPatchFilter);
+instance.processor.pipes.reverse
+  .replace('arrays', jsondiffpatchArraysByHash.reverseFilter)
+  .replace('arraysCollectChildren', jsondiffpatchArraysByHash.collectChildrenReverseFilter);
+```
+
+That's it! Use your jsondiffpatch instance to `diff()`, `patch()`, `unpatch()`, etc.
