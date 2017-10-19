@@ -75,15 +75,21 @@ In practice deltas look liks this:
 }
 ```
 
-### How to use this plugin
+### How to use
 
-First install the plugin, and ensure you have jsondiffpatch >= 0.25
+If you haven't installed the main jsondiffpatch package (>= 0.25):
 
 ```
-npm install jsondiffpatch-arrays-by-hash
+npm install -s jsondiffpatch
 ```
 
-Next set up your jsondiffpatch instance and configure it to use this plugin:
+Next install our package:
+
+```
+npm install -s jsondiffpatch-arrays-by-hash
+```
+
+Next set up your jsondiffpatch instance and add in the plugin filters:
 
 ```js
 import jsonDiffPatch from 'jsondiffpatch';
