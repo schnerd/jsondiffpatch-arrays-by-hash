@@ -116,3 +116,7 @@ instance.processor.pipes.reverse
 ```
 
 That's it! Use your jsondiffpatch instance to `diff()`, `patch()`, `unpatch()`, etc.
+
+### Who's Using It?
+
+This plugin was initially built to support Uber's internal experimentation platform. We created a peer review system for approving changes to experiments, and needed the ability to merge these changes together reliably.
