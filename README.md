@@ -2,6 +2,8 @@
 
 A plugin for jsondiffpatch that supports tracking changes in arrays based on object hashes instead of indexes.
 
+> Note: This package currently only works with jsondiffpatch <= v0.2.5, follow [this issue](https://github.com/schnerd/jsondiffpatch-arrays-by-hash/issues/1) for details.
+
 ### Why?
 
 [benjamine/jsondiffpatch](https://github.com/benjamine/jsondiffpatch/commits/master) is an awesome library for creating json patch objects from the difference between two JSON objects.
@@ -77,10 +79,10 @@ In practice deltas look liks this:
 
 ### How to use
 
-If you haven't installed the main jsondiffpatch package (>= 0.25):
+> Note: This package currently only works with jsondiffpatch <= v0.2.5, follow [this issue](https://github.com/schnerd/jsondiffpatch-arrays-by-hash/issues/1) for details.
 
 ```
-npm install -s jsondiffpatch
+npm install -s jsondiffpatch@v0.2.5
 ```
 
 Next install our package:
