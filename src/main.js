@@ -13,6 +13,7 @@ var MODIFY_PREFIX = '!';
 var INDEX_PREFIX = '@';
 var HASH_PREFIX = '#';
 
+
 var isArray = (typeof Array.isArray === 'function') ?
   // use native function
   Array.isArray :
