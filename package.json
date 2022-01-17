@@ -28,6 +28,7 @@
     "url": "https://github.com/schnerd/jsondiffpatch-arrays-by-hash.git"
   },
   "files": [
-    "dist"
+    "dist",
+	"src"
   ]
 }
