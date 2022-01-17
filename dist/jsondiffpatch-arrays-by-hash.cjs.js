@@ -2,10 +2,79 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var DiffContext = require('jsondiffpatch/src/contexts/diff').DiffContext;
-var PatchContext = require('jsondiffpatch/src/contexts/patch').PatchContext;
-var ReverseContext = require('jsondiffpatch/src/contexts/reverse').ReverseContext;
-var lcs = require('jsondiffpatch/src/filters/lcs');
+var defaultMatch = function defaultMatch(array1, array2, index1, index2) {
+  return array1[index1] === array2[index2];
+};
+
+var lengthMatrix = function lengthMatrix(array1, array2, match, context) {
+  var len1 = array1.length;
+  var len2 = array2.length;
+  var x = void 0,
+      y = void 0;
+
+  // initialize empty matrix of len1+1 x len2+1
+  var matrix = [len1 + 1];
+  for (x = 0; x < len1 + 1; x++) {
+    matrix[x] = [len2 + 1];
+    for (y = 0; y < len2 + 1; y++) {
+      matrix[x][y] = 0;
+    }
+  }
+  matrix.match = match;
+  // save sequence lengths for each coordinate
+  for (x = 1; x < len1 + 1; x++) {
+    for (y = 1; y < len2 + 1; y++) {
+      if (match(array1, array2, x - 1, y - 1, context)) {
+        matrix[x][y] = matrix[x - 1][y - 1] + 1;
+      } else {
+        matrix[x][y] = Math.max(matrix[x - 1][y], matrix[x][y - 1]);
+      }
+    }
+  }
+  return matrix;
+};
+
+var backtrack = function backtrack(matrix, array1, array2, context) {
+  var index1 = array1.length;
+  var index2 = array2.length;
+  var subsequence = {
+    sequence: [],
+    indices1: [],
+    indices2: []
+  };
+
+  while (index1 !== 0 && index2 !== 0) {
+    var sameLetter = matrix.match(array1, array2, index1 - 1, index2 - 1, context);
+    if (sameLetter) {
+      subsequence.sequence.unshift(array1[index1 - 1]);
+      subsequence.indices1.unshift(index1 - 1);
+      subsequence.indices2.unshift(index2 - 1);
+      --index1;
+      --index2;
+    } else {
+      var valueAtMatrixAbove = matrix[index1][index2 - 1];
+      var valueAtMatrixLeft = matrix[index1 - 1][index2];
+      if (valueAtMatrixAbove > valueAtMatrixLeft) {
+        --index2;
+      } else {
+        --index1;
+      }
+    }
+  }
+  return subsequence;
+};
+
+var lcs = {
+  get: function get(array1, array2, match, context) {
+    var innerContext = context || {};
+    var matrix = lengthMatrix(array1, array2, match || defaultMatch, innerContext);
+    var result = backtrack(matrix, array1, array2, innerContext);
+    if (typeof array1 === 'string' && typeof array2 === 'string') {
+      result.sequence = result.sequence.join('');
+    }
+    return result;
+  }
+};
 
 var ARRAY_REMOVE = 0;
 var ARRAY_MOVE = 3;
@@ -137,7 +206,7 @@ var diffFilter = function arraysDiffFilter(context) {
   // separate common head
   while (commonHead < len1 && commonHead < len2 && matchItems(array1, array2, commonHead, commonHead, matchContext)) {
     index = commonHead;
-    child = new DiffContext(context.left[index], context.right[index]);
+    child = new context.constructor(context.left[index], context.right[index]);
     hashKey = hashOrIndex(array1[index], index, matchContext);
     context.push(child, MODIFY_PREFIX + hashKey);
     commonHead++;
@@ -146,7 +215,7 @@ var diffFilter = function arraysDiffFilter(context) {
   while (commonTail + commonHead < len1 && commonTail + commonHead < len2 && matchItems(array1, array2, len1 - 1 - commonTail, len2 - 1 - commonTail, matchContext)) {
     index1 = len1 - 1 - commonTail;
     index2 = len2 - 1 - commonTail;
-    child = new DiffContext(context.left[index1], context.right[index2]);
+    child = new context.constructor(context.left[index1], context.right[index2]);
     hashKey = hashOrIndex(array2[index2], index2, matchContext);
     context.push(child, MODIFY_PREFIX + hashKey);
     commonTail++;
@@ -229,7 +298,7 @@ var diffFilter = function arraysDiffFilter(context) {
             }
 
             index2 = index;
-            child = new DiffContext(context.left[index1], context.right[index2]);
+            child = new context.constructor(context.left[index1], context.right[index2]);
             context.push(child, MODIFY_PREFIX + hashKey);
             removedItems.splice(removeItemIndex1, 1);
             isMove = true;
@@ -245,7 +314,7 @@ var diffFilter = function arraysDiffFilter(context) {
       // match, do inner diff
       index1 = seq.indices1[indexOnArray2] + commonHead;
       index2 = seq.indices2[indexOnArray2] + commonHead;
-      child = new DiffContext(context.left[index1], context.right[index2]);
+      child = new context.constructor(context.left[index1], context.right[index2]);
       hashKey = hashOrIndex(array2[index2], index2, matchContext);
       context.push(child, MODIFY_PREFIX + hashKey);
     }
@@ -350,7 +419,7 @@ var patchFilter = function nestedPatchFilter(context) {
   for (var j = 0; toModifyLength && j < array.length; j++) {
     hashKey = hashOrIndex(array[j], j, matchContext);
     if (toModify[hashKey]) {
-      var child = new PatchContext(context.left[j], toModify[hashKey]);
+      var child = new context.constructor(context.left[j], toModify[hashKey]);
       context.push(child, j);
     }
   }
@@ -389,7 +458,7 @@ var reverseFilter = function arraysReverseFilter(context) {
     if (name === '_t') {
       continue;
     }
-    child = new ReverseContext(context.delta[name]);
+    child = new context.constructor(context.delta[name]);
     context.push(child, name);
   }
   context.exit();
