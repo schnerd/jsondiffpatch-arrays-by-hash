@@ -102,7 +102,7 @@ function hashOrIndex(object, index, matchContext) {
   return INDEX_PREFIX + index;
 }
 
-var diffFilter = function arraysDiffFilter(context) {
+export function diffFilter(context) {
   if (!context.leftIsArray) {
     return;
   }
@@ -269,7 +269,7 @@ var compare = {
   }
 };
 
-var patchFilter = function nestedPatchFilter(context) {
+export function patchFilter(context) {
   if (!context.nested) {
     return;
   }
@@ -367,7 +367,7 @@ var patchFilter = function nestedPatchFilter(context) {
 };
 patchFilter.filterName = 'arrays';
 
-var collectChildrenPatchFilter = function collectChildrenPatchFilter(context) {
+export function collectChildrenPatchFilter(context) {
   if (!context || !context.children) {
     return;
   }
@@ -384,7 +384,7 @@ var collectChildrenPatchFilter = function collectChildrenPatchFilter(context) {
 };
 collectChildrenPatchFilter.filterName = 'arraysCollectChildren';
 
-var reverseFilter = function arraysReverseFilter(context) {
+export function reverseFilter(context) {
   if (!context.nested || context.delta._t !== 'a') {
     return;
   }
@@ -472,7 +472,7 @@ var reverseArrayDeltaIndex = function(delta, index, itemDelta) {
  * 4. collectChildrenReverseFilter
  *   Receives array again, fix array keys if necessary and mark array as complete
  */
-var collectChildrenReverseFilter = function collectChildrenReverseFilter(context) {
+export function collectChildrenReverseFilter(context) {
   if (!context) {
     return;
   }
@@ -550,11 +550,3 @@ var collectChildrenReverseFilter = function collectChildrenReverseFilter(context
   }
 };
 collectChildrenReverseFilter.filterName = 'arraysCollectChildren';
-
-export default {
-	diffFilter,
-	patchFilter,
-	collectChildrenPatchFilter,
-	reverseFilter,
-	collectChildrenReverseFilter,
-};
